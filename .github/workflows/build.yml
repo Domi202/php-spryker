@@ -1,16 +1,24 @@
 name: Docker Build/Publish Image
+
 on:
   push:
     branches: [ main ]
+
 jobs:
   build:
     runs-on: ubuntu-18.04
+
+    strategy:
+      matrix:
+        php: [7.3, 7.4]
+
     env:
       DOCKER_REGISTRY: registry.hub.docker.com
       DOCKER_IMAGE: dkreemers/php-spryker
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      DOCKER_TARGET_PLATFORM: linux/arm/v7
+      DOCKER_TARGET_PLATFORM: linux/amd64,linux/arm64
+
     steps:
       - name: Checkout the code
         uses: actions/checkout@v1
@@ -35,5 +43,5 @@ jobs:
           docker buildx build \
           --platform ${{ steps.prepare.outputs.docker_platform }} \
           --tag ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }} \
-          --file ./Dockerfile \
+          --file ./soap/php${{ matrix.php }}/Dockerfile \
           --output type=image,push=true .
